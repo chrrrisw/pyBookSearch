@@ -30,6 +30,7 @@ TEXT_HELP = '''
 [s | save]     - save
 [i | isbn]     - ISBN search mode (default)
 [c | lccn]     - LCCN search mode
+[m | manual]   - Enter book manually
 '''
 
 
@@ -42,6 +43,112 @@ def text_resolver(field, first, second):
         return first
     else:
         return second
+
+
+class TextLibrary(crwLibrary.Library):
+    def __init__(
+            self,
+            filename,
+            searchers=None,
+            mode=Modes.ISBN,
+            delimiter='|',
+            fill=False,
+            noquestions=False):
+
+        self.searchers = searchers
+        self.mode = mode
+        self.fill = fill
+        self.noquestions = noquestions
+
+        # create library
+        crwLibrary.Library.__init__(
+            self,
+            filename=filename,
+            delimiter=delimiter)
+
+        # fill the model from file
+        self.read_from_file()
+
+        print('You have {} books in your library.'.format(self.book_count))
+
+    def manual_entry_loop(self):
+        print('Sorry - not yet implemented')
+
+    def find_book(self, value):
+
+        # Create an empty book
+        book = crwBook.Book(isbn=value)
+
+        # Iterate through the searchers for the mode
+        for searcher in self.searchers[self.mode]:
+
+            print("Checking for the {} at {}... ".format(
+                self.mode.name, searcher.name))
+
+            book = searcher.search(
+                isbn=value,
+                mode=self.mode,
+                book=book,
+                fill=self.fill)
+
+            if book.has_unknowns:
+                book.display_unknowns()
+
+            if book.author != crwBook.UNKNOWN and not self.fill:
+                break
+            elif book.has_unknowns and self.fill:
+                print("\tAttempting to fill unknown values...")
+            else:
+                print('\tNot found')
+
+        if book.title == crwBook.UNKNOWN and not self.noquestions:
+            book.title = input('Enter Unknown title:')
+
+        self.add_book(book)
+        print(book)
+
+    def isbn_loop(self):
+        print(TEXT_HELP)
+        try:
+            command = input("Enter {}:".format(self.mode.name))
+        except EOFError:
+            # When using redirected input, don't bomb out on EOF
+            command = 'q'
+
+        while (command != '0') and (command != 'q') and (command != 'quit'):
+            if command == "save" or command == 's':
+                self.save_to_file()
+            elif command == 'help' or command == 'h':
+                print(TEXT_HELP)
+            elif command == 'isbn' or command == 'i':
+                self.mode = Modes.ISBN
+                print("Searching by {}".format(self.mode.name))
+            elif command == 'lccn' or command == 'c':
+                self.mode = Modes.LCCN
+                print('Searching by {}'.format(self.mode.name))
+            elif command == 'manual' or command == 'm':
+                print('Entering books manually')
+                self.manual_entry_loop()
+            else:
+                # TODO:
+                if self.noquestions:
+                    self.find_book(command)
+                else:
+                    exists, book = self.isbn_exists(command)
+                    if exists:
+                        print(book)
+                        add_again = input("### Book exists, do you want to search again?")
+                        if add_again == "y":
+                            self.find_book(command)
+                    else:
+                        self.find_book(command)
+
+            # Ask for the next input
+            try:
+                command = input("Enter {}:".format(self.mode.name))
+            except EOFError:
+                # When using redirected input, don't bomb out on EOF
+                command = 'q'
 
 
 def main(argv=None):
@@ -140,92 +247,21 @@ http://www.apache.org/licenses/LICENSE-2.0""".format(
     if HAVE_GTK:
         library = crwGTKLibrary.GTKLibrary(
             filename=args.libfile,
-            searcher=isbnSearchOrg,
+            searchers=searchers,
             delimiter=args.delimiter)
         Gtk.main()
     else:
         if not args.noquestions:
             isbnSearchOrg.set_resolver(text_resolver)
             openLibraryOrg.set_resolver(text_resolver)
-        library = crwLibrary.Library(
+
+        library = TextLibrary(
             filename=args.libfile,
-            delimiter=args.delimiter)
-        library.read_from_file()
-        print('You have {} books in your library.'.format(library.book_count))
-        print(TEXT_HELP)
-
-        def find_book(mode, value):
-
-            fill = args.fill
-            # Create an empty book
-            book = crwBook.Book(isbn=value)
-
-            # Iterate through the searchers for the mode
-            for searcher in searchers[mode]:
-
-                print("Checking for the {} at {}... ".format(
-                    mode.name, searcher.name))
-
-                book = searcher.search(
-                    isbn=value,
-                    mode=mode,
-                    book=book,
-                    fill=fill)
-
-                if book.has_unknowns:
-                    book.display_unknowns()
-
-                if book.author != crwBook.UNKNOWN and not fill:
-                    break
-                elif book.has_unknowns and fill:
-                    print("\tAttempting to fill unknown values...")
-                else:
-                    print('\tNot found')
-
-            if book.title == crwBook.UNKNOWN and not args.noquestions:
-                book.title = input('Enter Unknown title:')
-
-            library.add_book(book)
-            print(book)
-
-        mode = Modes.ISBN
-        try:
-            isbn = input("Enter {}:".format(mode.name))
-        except EOFError:
-            # When using redirected input, don't bomb out on EOF
-            isbn = 'q'
-
-        while (isbn != '0') and (isbn != 'q') and (isbn != 'quit'):
-            if isbn == "save" or isbn == 's':
-                library.save_to_file()
-            elif isbn == 'help' or isbn == 'h':
-                print(TEXT_HELP)
-            elif isbn == 'isbn' or isbn == 'i':
-                mode = Modes.ISBN
-                print("Searching by {}".format(mode.name))
-            elif isbn == 'lccn' or isbn == 'c':
-                mode = Modes.LCCN
-                print('Searching by {}'.format(mode.name))
-            else:
-                # TODO:
-                if args.noquestions:
-                    find_book(mode, isbn)
-                else:
-                    exists, book = library.isbn_exists(isbn)
-                    if exists:
-                        print(book)
-                        add_again = input("### Book exists, do you want to search again?")
-                        if add_again == "y":
-                            find_book(mode, isbn)
-                    else:
-                        find_book(mode, isbn)
-
-            # Ask for the next input
-            try:
-                isbn = input("Enter {}:".format(mode.name))
-            except EOFError:
-                # When using redirected input, don't bomb out on EOF
-                isbn = 'q'
+            searchers=searchers,
+            delimiter=args.delimiter,
+            fill=args.fill,
+            noquestions=args.noquestions)
+        library.isbn_loop()
 
         # Save before exiting
         library.save_to_file()
