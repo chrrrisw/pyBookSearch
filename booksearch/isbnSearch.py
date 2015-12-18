@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import crwBook
+from .book import Book, UNKNOWN
 import json
 import sys
 from enum import IntEnum
@@ -38,7 +38,7 @@ class BaseSearcher(object):
 
     def search(self, isbn, mode, book=None, fill=False):
         if book is None:
-            book = crwBook.Book(isbn=str(isbn))
+            book = Book(isbn=str(isbn))
         else:
             book.isbn = isbn
         return book
@@ -187,7 +187,7 @@ class OpenLibraryOrg(BaseSearcher):
                     # Get the title and subtitle, join them
                     book_data['title'] = book_json[k1].get(
                         'title',
-                        crwBook.UNKNOWN)
+                        UNKNOWN)
                     subtitle = book_json[k1].get('subtitle', '')
                     if subtitle != '':
                         book_data['title'] = '{} : {}'.format(book_data['title'], subtitle)
@@ -209,7 +209,7 @@ class OpenLibraryOrg(BaseSearcher):
                     # Get the published date
                     book_data['published'] = book_json[k1].get(
                         'publish_date',
-                        crwBook.UNKNOWN)
+                        UNKNOWN)
 
                     # Get the identifiers
                     if 'identifiers' in book_json[k1]:
@@ -229,7 +229,7 @@ class OpenLibraryOrg(BaseSearcher):
 
             else:
                 print('\tISBN not found at www.openlibrary.org')
-                book_data['title'] = crwBook.UNKNOWN
+                book_data['title'] = UNKNOWN
                 # book.unknown_title()
 
         except urllib.error.URLError as err:
@@ -288,11 +288,11 @@ class ISBNSearchOrg(BaseSearcher):
                     # print ('title: {}'.format(soup.h2.string))
                 except AttributeError:
                     # print('### Error retrieving Title.')
-                    book_data['title'] = crwBook.UNKNOWN
+                    book_data['title'] = UNKNOWN
 
                 if book_data['title'][:4] == 'ISBN':
                     # BOGUS TITLE
-                    book_data['title'] = crwBook.UNKNOWN
+                    book_data['title'] = UNKNOWN
 
                 # Get the remaining values
                 for label in soup.find_all('strong'):
@@ -306,7 +306,7 @@ class ISBNSearchOrg(BaseSearcher):
                                 '&', '&amp;')
                         except AttributeError:
                             # print('### Error retrieving Author.')
-                            book_data['author'] = crwBook.UNKNOWN
+                            book_data['author'] = UNKNOWN
 
                     if label.string == 'Authors:':
                         try:
@@ -316,7 +316,7 @@ class ISBNSearchOrg(BaseSearcher):
                                 '&', '&amp;')
                         except AttributeError:
                             # print('### Error retrieving Author.')
-                            book_data['author'] = crwBook.UNKNOWN
+                            book_data['author'] = UNKNOWN
 
                     if label.string == 'Binding:':
                         # TODO: This is a hack for &
@@ -338,12 +338,12 @@ class ISBNSearchOrg(BaseSearcher):
                     book_data['usedPrice'] = soup.find_all('table', class_='prices')[1].tbody.tr.td.find_next_sibling(class_='price').p.a.contents
                 # if there isn't a price record
                 except IndexError:
-                    book_data['usedPrice'] = crwBook.UNKNOWN
+                    book_data['usedPrice'] = UNKNOWN
 
             except urlexception as err:
                 print('\tISBN not found at www.isbnsearch.org: {}'.format(
                     err.code))
-                book_data['title'] = crwBook.UNKNOWN
+                book_data['title'] = UNKNOWN
                 # book.unknown_title()
 
         if fill:
