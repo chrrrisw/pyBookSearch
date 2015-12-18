@@ -1,4 +1,4 @@
-from crwBook import Book
+from .book import Book
 from gi.repository import Gtk
 
 

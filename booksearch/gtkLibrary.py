@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import crwBook
-import crwLibrary
+from .book import Book, bkFields, UNKNOWN, bkISBN, bkAuthor, bkTitle
+from .library import Library
 from gi.repository import Gtk, GObject
-from crwGTKScannerEntry import GTKScannerEntry
-from crwGTKBookEntry import GTKBookEntry
-from crwISBNSearch import Modes
+from .gtkScannerEntry import GTKScannerEntry
+from .gtkBookEntry import GTKBookEntry
+from .isbnSearch import Modes
 
 (
     COLUMN_ISBN,
@@ -31,8 +31,15 @@ MENU_INFO = """
 HIGHLIGHT = "<span background='yellow' foreground='black'>{}</span>"
 
 
-class GTKLibrary(Gtk.Window, crwLibrary.Library):
-    def __init__(self, filename, searchers=None, mode=Modes.ISBN, parent=None, delimiter='|'):
+class GTKLibrary(Gtk.Window, Library):
+    def __init__(
+            self,
+            filename,
+            searchers=None,
+            mode=Modes.ISBN,
+            parent=None,
+            delimiter='|'):
+
         """Create a window with a list and a couple of buttons."""
 
         self.searchers = searchers
@@ -42,7 +49,7 @@ class GTKLibrary(Gtk.Window, crwLibrary.Library):
         Gtk.Window.__init__(self)
 
         # create library
-        crwLibrary.Library.__init__(
+        Library.__init__(
             self,
             filename=filename,
             delimiter=delimiter)
@@ -173,7 +180,7 @@ class GTKLibrary(Gtk.Window, crwLibrary.Library):
         # column for ISBN
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn(
-            crwBook.bkFields[crwBook.bkISBN][1], renderer, text=COLUMN_ISBN)
+            bkFields[bkISBN][1], renderer, text=COLUMN_ISBN)
         column.set_sort_column_id(COLUMN_ISBN)
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         column.set_resizable(True)
@@ -184,7 +191,7 @@ class GTKLibrary(Gtk.Window, crwLibrary.Library):
         renderer = Gtk.CellRendererText()
         renderer.set_property("editable", True)
         column = Gtk.TreeViewColumn(
-            crwBook.bkFields[crwBook.bkAuthor][1], renderer, markup=COLUMN_AUTHOR)
+            bkFields[bkAuthor][1], renderer, markup=COLUMN_AUTHOR)
         column.set_sort_column_id(COLUMN_AUTHOR)
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         column.set_resizable(True)
@@ -196,7 +203,7 @@ class GTKLibrary(Gtk.Window, crwLibrary.Library):
         renderer = Gtk.CellRendererText()
         renderer.set_property("editable", True)
         column = Gtk.TreeViewColumn(
-            crwBook.bkFields[crwBook.bkTitle][1], renderer, markup=COLUMN_TITLE)
+            bkFields[bkTitle][1], renderer, markup=COLUMN_TITLE)
         column.set_sort_column_id(COLUMN_TITLE)
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         column.set_resizable(True)
@@ -308,7 +315,7 @@ class GTKLibrary(Gtk.Window, crwLibrary.Library):
 
         if book is None and add:
             self.add_book(
-                crwBook.Book(isbn=isbn))
+                Book(isbn=isbn))
 
     def add_book(self, book):
         # Call the super class function
@@ -341,11 +348,11 @@ class GTKLibrary(Gtk.Window, crwLibrary.Library):
             iter = self.book_model.append()
 
             title = book.title
-            if title == crwBook.UNKNOWN:
+            if title == UNKNOWN:
                 title = HIGHLIGHT.format(title)
 
             author = book.author
-            if author == crwBook.UNKNOWN:
+            if author == UNKNOWN:
                 author = HIGHLIGHT.format(author)
 
             self.book_model.set(
@@ -357,5 +364,5 @@ class GTKLibrary(Gtk.Window, crwLibrary.Library):
 
 if __name__ == "__main__":
     gtkLibrary = GTKLibrary("library.csv")
-    gtkLibrary.add_book(crwBook.Book(isbn="9876", title="9876", author="9876"))
+    gtkLibrary.add_book(Book(isbn="9876", title="9876", author="9876"))
     Gtk.main()

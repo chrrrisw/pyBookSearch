@@ -287,7 +287,7 @@ class Book(object):
             self._usedPrice = value.strip()
 
     def __repr__(self):
-        return 'crwBook.Book(isbn="' + self._isbn + \
+        return 'Book(isbn="' + self._isbn + \
                '", title="' + self._title + \
                '", author="' + self._author + \
                '")'

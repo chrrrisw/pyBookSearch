@@ -6,15 +6,15 @@ import argparse
 
 try:
     from gi.repository import Gtk
-    import crwGTKLibrary
+    from  booksearch.gtkLibrary import GTKLibrary
     HAVE_GTK = True
 except ImportError:
     print("### No GTK - reverting to text mode")
     HAVE_GTK = False
 
-import crwBook
-import crwLibrary
-from crwISBNSearch import Modes, ISBNSearchOrg, OpenLibraryOrg
+from booksearch.book import Book, UNKNOWN
+from booksearch.library import Library
+from booksearch.isbnSearch import Modes, ISBNSearchOrg, OpenLibraryOrg
 
 # ==========================
 
@@ -45,7 +45,7 @@ def text_resolver(field, first, second):
         return second
 
 
-class TextLibrary(crwLibrary.Library):
+class TextLibrary(Library):
     def __init__(
             self,
             filename,
@@ -61,7 +61,7 @@ class TextLibrary(crwLibrary.Library):
         self.noquestions = noquestions
 
         # create library
-        crwLibrary.Library.__init__(
+        Library.__init__(
             self,
             filename=filename,
             delimiter=delimiter)
@@ -77,7 +77,7 @@ class TextLibrary(crwLibrary.Library):
     def find_book(self, value):
 
         # Create an empty book
-        book = crwBook.Book(isbn=value)
+        book = Book(isbn=value)
 
         # Iterate through the searchers for the mode
         for searcher in self.searchers[self.mode]:
@@ -94,14 +94,14 @@ class TextLibrary(crwLibrary.Library):
             if book.has_unknowns:
                 book.display_unknowns()
 
-            if book.author != crwBook.UNKNOWN and not self.fill:
+            if book.author != UNKNOWN and not self.fill:
                 break
             elif book.has_unknowns and self.fill:
                 print("\tAttempting to fill unknown values...")
             else:
                 print('\tNot found')
 
-        if book.title == crwBook.UNKNOWN and not self.noquestions:
+        if book.title == UNKNOWN and not self.noquestions:
             book.title = input('Enter Unknown title:')
 
         self.add_book(book)
@@ -245,7 +245,7 @@ http://www.apache.org/licenses/LICENSE-2.0""".format(
     }
 
     if HAVE_GTK:
-        library = crwGTKLibrary.GTKLibrary(
+        library = GTKLibrary(
             filename=args.libfile,
             searchers=searchers,
             delimiter=args.delimiter)

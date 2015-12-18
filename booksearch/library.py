@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Define a Library class to store a list of books."""
 
-import crwBook
+from .book import Book, bkFields
 import csv
 import sys
 
@@ -90,7 +90,7 @@ class Library(object):
                 book_reader = csv.DictReader(library_file, dialect=dialect)
 
                 for book in book_reader:
-                    self.book_list.append(crwBook.Book(**book))
+                    self.book_list.append(Book(**book))
 
         except IOError:
             print("### No library file.")
@@ -108,12 +108,12 @@ class Library(object):
                 delimiter=self.delimiter)
 
             # Write the heading row
-            book_writer.writerow([f[1] for f in crwBook.bkFields])
+            book_writer.writerow([f[1] for f in bkFields])
 
             # Write the book data
             for book in self.book_list:
                 book_writer.writerow(
-                    [getattr(book, f[0]) for f in crwBook.bkFields])
+                    [getattr(book, f[0]) for f in bkFields])
 
         print("Saved", self.filename)
 
@@ -121,11 +121,11 @@ if __name__ == "__main__":
     library = Library("library_test.csv")
     library.read_from_file()
 
-    library.add_book(crwBook.Book(
+    library.add_book(Book(
         isbn="1234", title="title1234", author="author1234"))
-    library.add_book(crwBook.Book(
+    library.add_book(Book(
         isbn="2345", title="title2345", author="author2345"))
-    library.add_book(crwBook.Book(
+    library.add_book(Book(
         isbn="3456", title="title3456", author="author3456"))
 
     # library.remove_isbn("2345")

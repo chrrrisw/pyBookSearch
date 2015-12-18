@@ -4,7 +4,7 @@ import sys
 import argparse
 import csv
 
-import crwBook
+from booksearch.book import Book, UNKNOWN, bkFields, FUZZ_FACTOR
 
 
 def resolver(field, first, second):
@@ -39,8 +39,8 @@ def read_library(filename, books, books_no_id):
 
             for book in book_reader:
                 isbn = book['ISBN']
-                new_book = crwBook.Book(**book)
-                if isbn in ['', 'NA', crwBook.UNKNOWN]:
+                new_book = Book(**book)
+                if isbn in ['', 'NA', UNKNOWN]:
                     books_no_id.append(new_book)
                 else:
                     if isbn in books:
@@ -69,21 +69,24 @@ def write_library(filename, books, books_no_id):
             delimiter='|')
 
         # Write the heading row
-        book_writer.writerow([f[1] for f in crwBook.bkFields])
+        book_writer.writerow([f[1] for f in bkFields])
 
         # Write the book data
         for book in books:
             book_writer.writerow(
-                [getattr(books[book], f[0]) for f in crwBook.bkFields])
+                [getattr(books[book], f[0]) for f in bkFields])
         for book in books_no_id:
             book_writer.writerow(
-                [getattr(book, f[0]) for f in crwBook.bkFields])
+                [getattr(book, f[0]) for f in bkFields])
 
     print("Saved", filename)
 
 
 def main():
-    crwBook.FUZZ_FACTOR = 90
+    global FUZZ_FACTOR
+
+    FUZZ_FACTOR = 90
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
