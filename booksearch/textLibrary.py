@@ -109,16 +109,16 @@ class TextLibrary(Library):
             else:
                 # TODO:
                 if self.noquestions:
-                    self.find_book(command)
+                    self.find_book(value=command)
                 else:
                     exists, book = self.isbn_exists(command)
                     if exists:
                         print(book)
                         add_again = input("### Book exists, do you want to search again?")
                         if add_again == "y":
-                            self.find_book(command)
+                            self.find_book(value=command)
                     else:
-                        self.find_book(command)
+                        self.find_book(value=command)
 
             # Ask for the next input
             try:

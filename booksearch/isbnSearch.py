@@ -297,6 +297,20 @@ class ISBNSearchOrg(BaseSearcher):
                 # Get the remaining values
                 for label in soup.find_all('strong'):
 
+                    # ISBN-13
+                    if label.string == 'ISBN-13:':
+                        try:
+                            book_data['isbn13'] = label.find_next_sibling('a').contents[0]
+                        except AttributeError:
+                            book_data['isbn13'] = UNKNOWN
+
+                    # ISBN-10
+                    if label.string == 'ISBN-10:':
+                        try:
+                            book_data['isbn10'] = label.find_next_sibling('a').contents[0]
+                        except AttributeError:
+                            book_data['isbn10'] = UNKNOWN
+
                     # Get the author
                     if label.string == 'Author:':
                         try:
@@ -305,7 +319,6 @@ class ISBNSearchOrg(BaseSearcher):
                             book_data['author'] = label.nextSibling.string.replace(
                                 '&', '&amp;')
                         except AttributeError:
-                            # print('### Error retrieving Author.')
                             book_data['author'] = UNKNOWN
 
                     if label.string == 'Authors:':
@@ -315,7 +328,6 @@ class ISBNSearchOrg(BaseSearcher):
                             book_data['author'] = label.nextSibling.replace(
                                 '&', '&amp;')
                         except AttributeError:
-                            # print('### Error retrieving Author.')
                             book_data['author'] = UNKNOWN
 
                     if label.string == 'Binding:':
