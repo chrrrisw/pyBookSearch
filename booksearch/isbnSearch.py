@@ -168,7 +168,7 @@ class OpenLibraryOrg(BaseSearcher):
 
             # We expect JSON data
             book_json = json.loads(page.read().decode())
-            book_data = {}
+            book_data = {'isbn': isbn}
 
             # identifiers -> {isbn_10, isbn_13, openlibrary, etc}
             # authors -> list of {name, url}
@@ -259,7 +259,7 @@ class ISBNSearchOrg(BaseSearcher):
             book=book,
             fill=fill)
 
-        book_data = {}
+        book_data = {'isbn': isbn}
 
         if HAVE_SOUP:
             full_url = self.search_url + str(isbn)
