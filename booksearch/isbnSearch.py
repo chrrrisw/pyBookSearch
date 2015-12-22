@@ -18,7 +18,6 @@ try:
     from bs4 import BeautifulSoup, SoupStrainer
     HAVE_SOUP = True
 except ImportError:
-    print("### Sorry, I can't search for book info")
     HAVE_SOUP = False
 
 
@@ -248,8 +247,9 @@ class ISBNSearchOrg(BaseSearcher):
         super(ISBNSearchOrg, self).__init__()
         self.search_url = 'http://www.isbnsearch.org/isbn/'
 
-        # Only process the core content division
-        self.bookinfo_filter = SoupStrainer('div')
+        if HAVE_SOUP:
+            # Only process the core content division
+            self.bookinfo_filter = SoupStrainer('div')
 
     def search(self, isbn, mode, book=None, fill=False):
         # Call the superclass method to create the book
